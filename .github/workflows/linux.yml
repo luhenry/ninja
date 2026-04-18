@@ -43,24 +43,35 @@ jobs:
   build:
     strategy:
       matrix:
-        host-os: ["ubuntu-latest", "ubuntu-24.04-arm"]
+        host-os: ["ubuntu-latest", "ubuntu-24.04-arm", "ubuntu-24.04-riscv"]
         include:
           - host-os: "ubuntu-24.04-arm"
             arch: "-aarch64"
+          - host-os: "ubuntu-24.04-riscv"
+            arch: "-riscv64"
+            rockylinux: 10
       fail-fast: false
     defaults:
       run:
         shell: bash
     runs-on: ${{ matrix.host-os }}
-    container: rockylinux/rockylinux:8
+    container: rockylinux/rockylinux:${{ matrix.rockylinux || '8' }}
     steps:
       - uses: actions/checkout@v6
       - uses: codespell-project/actions-codespell@master
         with:
           ignore_words_list: fo,wee,addin,notin
       - name: Install dependencies
+        if: matrix.host-os != 'ubuntu-24.04-riscv'
         run: |
           dnf install -y make gcc-c++ libasan clang-analyzer cmake dnf-plugins-core epel-release
+          dnf config-manager --set-enabled powertools
+          dnf install -y gtest-devel p7zip p7zip-plugins ninja-build
+      - name: Install dependencies (riscv64)
+        if: matrix.host-os == 'ubuntu-24.04-riscv'
+        run: |
+          # epel-release is not available on riscv64
+          dnf install -y make gcc-c++ libasan clang-analyzer cmake dnf-plugins-core
           dnf config-manager --set-enabled powertools
           dnf install -y gtest-devel p7zip p7zip-plugins ninja-build
 
@@ -113,8 +124,12 @@ jobs:
       contents: read
     strategy:
       matrix:
-        host-os: ["ubuntu-latest", "ubuntu-24.04-arm"]
+        host-os: ["ubuntu-latest", "ubuntu-24.04-arm", "ubuntu-24.04-riscv"]
         image: ["ubuntu:22.04", "ubuntu:24.04"]
+        exclude:
+          # the node.js version compiled for riscv64 requires libc/libc++ from ubuntu:24.04+
+          - host-os: ubuntu-24.04-riscv
+            image: ubuntu:22.04
       fail-fast: false
     defaults:
       run:
@@ -171,8 +186,12 @@ jobs:
       contents: read
     strategy:
       matrix:
-        host-os: ["ubuntu-latest", "ubuntu-24.04-arm"]
+        host-os: ["ubuntu-latest", "ubuntu-24.04-arm", "ubuntu-24.04-riscv"]
         image: ["ubuntu:22.04", "ubuntu:24.04"]
+        exclude:
+          # the node.js version compiled for riscv64 requires libc/libc++ from ubuntu:24.04+
+          - host-os: ubuntu-24.04-riscv
+            image: ubuntu:22.04
       fail-fast: false
     defaults:
       run:
