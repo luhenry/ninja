@@ -139,7 +139,7 @@ def generate_build_plan(command_count: int) -> str:
     """
     result = f"""
 rule span
-    command = {sys.executable} -S {_JOBSERVER_TEST_HELPER_SCRIPT} --duration-ms=50 $out
+    command = {sys.executable} -S {_JOBSERVER_TEST_HELPER_SCRIPT} --duration-ms=250 $out
 
 """
 
