@@ -70,9 +70,8 @@ jobs:
       - name: Install dependencies (riscv64)
         if: matrix.host-os == 'ubuntu-24.04-riscv'
         run: |
-          # epel-release is not available on riscv64
+          # epel-release and powertools are not available on riscv64
           dnf install -y make gcc-c++ libasan clang-analyzer cmake dnf-plugins-core
-          dnf config-manager --set-enabled powertools
           dnf install -y gtest-devel p7zip p7zip-plugins ninja-build
 
       - name: Build debug ninja
